@@ -56,7 +56,7 @@ I enjoy working with technology, solving complex problems and transforming data 
 ## 🔗 Connect With Me
 
 - LinkedIn: https://www.linkedin.com/in/ramya-manikandan-52ab65134/
-- GitHub: https://github.com/RamyaMani123
+- GitHub: https://github.com/RamyaMani123/Ramya_Manikandan_professional_portfolio
 
 ## 💼 Professional Experience
 
