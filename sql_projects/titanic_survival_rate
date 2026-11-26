@@ -1,1 +1,74 @@
+-- survival rate per gender, age group and travel type
+
+-- step 1: build a base table with the derived columns we need
+
+with base as (
+
+    select
+        passengerid,
+        survived,
+        sex as gender,
+        age,
+        sibsp,
+        parch,
+	-- age_group: bucket passengers by age
+-- null is handled first
+case
+    when age is null then 'unknown'
+    when age < 16 then 'child'
+    when age between 16 and 59 then 'adult'
+    when age >= 60 then 'senior'
+end as age_group,
+       (sibsp + parch) as family_size,
+       -- travel_type: anyone with at least one relative aboard counts as 'family'
+	-- can be done differently
+case
+   when (sibsp + parch) > 0 then 'family'
+   else 'solo'
+end as travel_type
+    from titanic -- replace with your table name
+
+),
+
+stats as (
+
+    select
+        gender,
+        age_group,
+        travel_type,
+        count(passengerid) as passenger_count,
+	 sum(survived) / count(passengerid) as survival_rate
+        -- this would also work
+ 	 -- avg(survived::float) as survival_rate
+    from base
+    group by
+        gender,
+        age_group,
+        travel_type
+
+),
+
+final as (
+
+    select
+        gender,
+        age_group,
+        travel_type,
+        passenger_count,
+        round(survival_rate, 2) as survival_rate,
+        case
+            when survival_rate >= 0.70 then 'high survival'
+            when survival_rate >= 0.40 then 'medium survival'
+            else 'low survival'
+        end as survival_category
+    from stats
+    order by survival_rate desc
+
+)
+
+select * from final
+
+;
+
+
 
