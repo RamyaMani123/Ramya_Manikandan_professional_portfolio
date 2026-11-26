@@ -1,0 +1,189 @@
+-- 1.1 average account balance per nation, with group by
+select
+    c_nationkey,
+    count(c_custkey) as n_customers,
+    avg(c_acctbal) as avg_balance
+from snowflake_sample_data.tpch_sf1.customer
+group by c_nationkey
+order by c_nationkey
+;
+-- 1.2 the same average next to every customer, with a window function
+select
+    c_custkey,
+    c_name,
+    c_nationkey,
+    c_acctbal,
+    avg(c_acctbal) over (partition by c_nationkey) as avg_balance_nation,
+    c_acctbal - avg(c_acctbal) over (partition by c_nationkey) as diff_from_nation_avg
+from snowflake_sample_data.tpch_sf1.customer
+order by
+    c_nationkey,
+    c_acctbal desc
+;
+-- 2.1 three ways of ranking customers by balance within their nation
+select
+    c_custkey,
+    c_nationkey,
+    c_acctbal,
+    row_number() over (partition by c_nationkey order by c_acctbal desc) as row_number_balance,
+    rank() over (partition by c_nationkey order by c_acctbal desc) as rank_balance,
+    dense_rank() over (partition by c_nationkey order by c_acctbal desc) as dense_rank_balance
+from snowflake_sample_data.tpch_sf1.customer
+order by
+    c_nationkey,
+    c_acctbal desc
+;
+-- 2.2 the five customers with the highest revenue per nation
+with customer_revenue as (
+    select
+        c.c_custkey as customer_id,
+        n.n_name as nation,
+        sum(o.o_totalprice) as total_revenue_per_customer
+    from snowflake_sample_data.tpch_sf1.customer as c
+    inner join snowflake_sample_data.tpch_sf1.orders as o
+        on c.c_custkey = o.o_custkey
+    inner join snowflake_sample_data.tpch_sf1.nation as n
+        on c.c_nationkey = n.n_nationkey
+    group by
+        c.c_custkey,
+        n.n_name
+),
+ranked_customers as (
+    select
+        customer_id,
+        nation,
+        total_revenue_per_customer,
+        dense_rank() over (partition by nation order by total_revenue_per_customer desc) as rank_in_nation
+    from customer_revenue
+)
+select *
+from ranked_customers
+where rank_in_nation between 1 and 5
+order by
+    nation,
+    rank_in_nation
+;
+-- 2.2 the same result with qualify, without the second CTE
+with customer_revenue as (
+    select
+        c.c_custkey as customer_id,
+        n.n_name as nation,
+        sum(o.o_totalprice) as total_revenue_per_customer
+    from snowflake_sample_data.tpch_sf1.customer as c
+    inner join snowflake_sample_data.tpch_sf1.orders as o
+        on c.c_custkey = o.o_custkey
+    inner join snowflake_sample_data.tpch_sf1.nation as n
+        on c.c_nationkey = n.n_nationkey
+    group by
+        c.c_custkey,
+        n.n_name
+)
+select
+    customer_id,
+    nation,
+    total_revenue_per_customer,
+    dense_rank() over (partition by nation order by total_revenue_per_customer desc) as rank_in_nation
+from customer_revenue
+qualify rank_in_nation <= 5
+order by
+    nation,
+    rank_in_nation
+;
+
+-- 3 revenue contribution per customer within their nation
+with customer_revenue as (
+    select
+        c.c_custkey as custkey,
+        n.n_name as nation_name,
+        sum(o.o_totalprice) as customer_revenue
+    from snowflake_sample_data.tpch_sf1.customer as c
+    inner join snowflake_sample_data.tpch_sf1.orders as o
+        on c.c_custkey = o.o_custkey
+    inner join snowflake_sample_data.tpch_sf1.nation as n
+        on c.c_nationkey = n.n_nationkey
+    group by
+        c.c_custkey,
+        n.n_name
+)
+select
+    custkey,
+    nation_name,
+    customer_revenue,
+    sum(customer_revenue) over (partition by nation_name) as nation_total_revenue,
+    customer_revenue * 100.0 / sum(customer_revenue) over (partition by nation_name) as revenue_share_pct
+from customer_revenue
+order by
+    nation_name,
+    revenue_share_pct desc
+;
+-- 4.1 order number, previous order date and days between orders per customer
+select
+    o_custkey,
+    o_orderkey,
+    o_orderdate,
+    o_totalprice,
+    row_number() over (partition by o_custkey order by o_orderdate) as order_number,
+    lag(o_orderdate) over (partition by o_custkey order by o_orderdate) as previous_order_date,
+    datediff(day, lag(o_orderdate) over (partition by o_custkey order by o_orderdate), o_orderdate) as days_since_previous_order
+from snowflake_sample_data.tpch_sf1.orders
+order by
+    o_custkey,
+    order_number
+;
+-- 4.2 the next order date and the change in order value
+select
+    o_custkey,
+    o_orderkey,
+    o_orderdate,
+    o_totalprice,
+    lead(o_orderdate) over (partition by o_custkey order by o_orderdate) as next_order_date,
+    o_totalprice - lag(o_totalprice) over (partition by o_custkey order by o_orderdate) as change_from_previous_order
+from snowflake_sample_data.tpch_sf1.orders
+order by
+    o_custkey,
+    o_orderdate
+;
+
+Answers to questions:
+Q4.1	They are null. There is no earlier order to look back at inside that customer’s partition, so lag has nothing to return and datediff on a null gives null.
+Q4.2	The window covers the whole orders table, so lag returns the previous row across all customers, ordered by date. The numbers still look fine, which is exactly what makes it dangerous. Compare the two versions for one customer.
+
+select
+    o_custkey,
+    o_orderkey,
+    o_orderdate,
+    lag(o_orderdate) over (order by o_orderdate) as previous_row_any_customer,
+    lag(o_orderdate) over (partition by o_custkey order by o_orderdate) as previous_order_same_customer
+from snowflake_sample_data.tpch_sf1.orders
+where o_custkey = 1
+order by o_orderdate
+;
+-- 5 revenue change per customer and year
+with customer_yearly_revenue as (
+    select
+        c.c_custkey as custkey,
+        date_part('year', o.o_orderdate) as order_year,
+        sum(o.o_totalprice) as total_revenue
+    from snowflake_sample_data.tpch_sf1.customer as c
+    inner join snowflake_sample_data.tpch_sf1.orders as o
+        on c.c_custkey = o.o_custkey
+    group by
+        c.c_custkey,
+        order_year
+),
+revenue_with_lag as (
+    select
+        custkey,
+        order_year,
+        total_revenue,
+        lag(total_revenue) over (partition by custkey order by order_year) as revenue_last_year,
+        total_revenue - lag(total_revenue) over (partition by custkey order by order_year) as revenue_change
+    from customer_yearly_revenue
+)
+select *
+from revenue_with_lag
+order by
+    custkey,
+    order_year
+;
+
