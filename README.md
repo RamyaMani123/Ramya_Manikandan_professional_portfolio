@@ -71,7 +71,8 @@ I enjoy working with technology, solving complex problems and transforming data 
 - Provided L2/L3 production support, troubleshooting and root cause analysis.
 - Collaborated with cross-functional teams to deliver enhancements and resolve critical application issues.
 
-### Full-Stack Developer Intern – Red River Consulting
+### Full-Stack Developer Intern – Red River Consulting(Stockholm)
+**june 2026 – August 2026**
 **DelDia – Project Management Application**
 
 - Contributed to the development of DelDia, a Jira-like project management application.
@@ -82,10 +83,18 @@ I enjoy working with technology, solving complex problems and transforming data 
 - Used Docker for application development and containerisation.
 - Collaborated with an Agile team to develop new features, fix bugs and deliver scalable full-stack solutions.
 
+**Mothercare Project**
+**November 2017 – March 2019**
+
+- Worked on Java-based application production support.
+- Monitored application issues and investigated production incidents.
+- Troubleshot Java application problems and supported issue resolution.
+- Collaborated with technical teams to maintain application stability and support business operations.
+
 ### Software Developer & Production Support – Tata Consultancy Services (TCS)
 **February 2013 – September 2015**
 
-**Project 1: Marks & Spencer (M&S)**
+ **Marks & Spencer (M&S**)
 
 - Worked on application development and production support for the Marks & Spencer project.
 - Contributed to application enhancements and development activities.
@@ -93,10 +102,27 @@ I enjoy working with technology, solving complex problems and transforming data 
 - Supported production operations to ensure application stability and availability.
 - Collaborated with development and support teams to troubleshoot and resolve technical issues.
 
-**Project 2: Mothercare**
+## 🎓 Education & Professional Development
 
-- Worked on Java-based application production support.
-- Monitored application issues and investigated production incidents.
-- Troubleshot Java application problems and supported issue resolution.
-- Collaborated with technical teams to maintain application stability and support business operations.
+### Data Analyst Programme – Hyper Island
+**August 2026 – July 2028 | Sweden**
+
+Currently pursuing a Data Analyst programme focused on developing practical skills in data analytics, data-driven decision-making and business intelligence.
+
+**Key Technologies & Skills:**
+- SQL and Advanced SQL
+- Python and Data Analysis
+- Snowflake and Data Warehousing
+- Data Cleaning and Transformation
+- Exploratory Data Analysis (EDA)
+- Data Visualisation and Business Intelligence
+- Power BI
+- Statistical Analysis and Business Insights
+
+**Learning Focus:**
+- Analysing datasets to identify trends and patterns.
+- Writing SQL queries to extract and transform data.
+- Using Python for data manipulation and analysis.
+- Creating meaningful visualisations and dashboards.
+- Translating analytical findings into actionable business insights.
 
