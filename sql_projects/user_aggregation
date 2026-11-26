@@ -1,1 +1,120 @@
+-- selecting relevant columns from base tables with descriptive aliases
+with customer_base as (
+    select 
+        c_custkey as customer_id,
+        c_name as customer_name,
+        c_address as customer_address,
+        c_phone as customer_phone,
+        c_acctbal as account_balance,
+        c_mktsegment as market_segment,
+        c_nationkey as nation_id
+    from snowflake_sample_data.tpch_sf1.customer
+),
+
+orders_base as (
+    select 
+        o_orderkey as order_id,
+        o_custkey as customer_id,
+        o_orderdate as order_date
+    from snowflake_sample_data.tpch_sf1.orders
+),
+
+lineitem_base as (
+    select 
+        l_orderkey as order_id,
+        l_partkey as part_id,
+        l_extendedprice as extended_price,
+        l_discount as discount
+    from snowflake_sample_data.tpch_sf1.lineitem
+),
+
+part_base as (
+    select 
+        p_partkey as part_id,
+        p_brand as brand
+    from snowflake_sample_data.tpch_sf1.part
+),
+
+-- aggregated metrics per customer with discount-adjusted revenue
+customer_agg as (
+    select
+        c.customer_id,
+        -- total number of orders
+        count(distinct o.order_id) as total_orders,
+        -- total revenue (discount-adjusted)
+        sum(l.extended_price * (1 - l.discount)) as total_revenue,
+        -- average order value, could be with our without discount
+        avg(l.extended_price * (1 - l.discount)) as avg_order_value,
+        -- first order date
+        min(o.order_date) as first_order_date,
+        -- last order date
+        max(o.order_date) as last_order_date
+    from customer_base c
+    left join orders_base o
+        on c.customer_id = o.customer_id
+    left join lineitem_base l
+        on o.order_id = l.order_id
+    group by c.customer_id
+),
+
+-- optional: favorite brand per customer
+favorite_brand as (
+    select
+        c.customer_id,
+        p.brand,
+        -- count of purchases for brand by the customer
+        count(l.order_id) as brand_count
+    from customer_base c
+    inner join orders_base o
+        on c.customer_id = o.customer_id
+    inner join lineitem_base l
+        on o.order_id = l.order_id
+    inner join part_base p
+        on l.part_id = p.part_id
+    group by c.customer_id, p.brand
+    /* you could use rank or dense rank here,
+    but I only want one result per user, so if they have two brands that have the same count, we chose one of them randomly
+    */
+    qualify row_number() over (
+        partition by c.customer_id
+        order by count(l.order_id) desc
+    ) = 1
+),
+
+-- final combined table including revenue-based segmentation
+final as (
+    select
+        -- primary key / unique identifier
+        c.customer_id,
+        c.customer_name,
+        c.customer_address,
+        c.customer_phone,
+        c.account_balance,
+        c.market_segment,
+        ca.total_orders,
+        ca.total_revenue,
+        ca.avg_order_value,
+        ca.first_order_date,
+        ca.last_order_date,
+        -- revenue segment: low/medium/high can be done very differently, this is a simple approach
+        case
+            when ca.total_revenue is null
+                then null
+            when ca.total_revenue < 1000000
+                then 'low'
+            when ca.total_revenue between 1000000 and 2000000
+                then 'medium'
+            else 'high'
+        end as revenue_segment,
+        -- optional: favorite brand
+        fb.brand as favorite_brand
+    from customer_base c
+    left join customer_agg ca
+        on c.customer_id = ca.customer_id
+    left join favorite_brand fb
+        on c.customer_id = fb.customer_id
+)
+
+select * from final;
+
 
