@@ -57,3 +57,46 @@ I enjoy working with technology, solving complex problems and transforming data 
 
 - LinkedIn: https://www.linkedin.com/in/ramya-manikandan-52ab65134/
 - GitHub: https://github.com/RamyaMani123
+
+## 💼 Professional Experience
+
+### Software Developer – Infosys
+**Mercedes-Benz eOrder Project | July 2021 – April 2025**
+
+- Developed and maintained enterprise applications using Java 17 and Spring Boot.
+- Designed and enhanced RESTful APIs and microservices.
+- Worked on order processing functionality and backend integrations.
+- Contributed to Spring Boot application modernisation.
+- Worked with PostgreSQL, Docker, Kubernetes and AWS environments.
+- Provided L2/L3 production support, troubleshooting and root cause analysis.
+- Collaborated with cross-functional teams to deliver enhancements and resolve critical application issues.
+
+### Full-Stack Developer Intern – Red River Consulting
+**DelDia – Project Management Application**
+
+- Contributed to the development of DelDia, a Jira-like project management application.
+- Developed frontend features using Angular 19.
+- Implemented backend functionality using C# and .NET 9.
+- Developed and integrated RESTful Web APIs.
+- Worked with MySQL for database operations and data management.
+- Used Docker for application development and containerisation.
+- Collaborated with an Agile team to develop new features, fix bugs and deliver scalable full-stack solutions.
+
+### Software Developer & Production Support – Tata Consultancy Services (TCS)
+**February 2013 – September 2015**
+
+**Project 1: Marks & Spencer (M&S)**
+
+- Worked on application development and production support for the Marks & Spencer project.
+- Contributed to application enhancements and development activities.
+- Investigated and resolved application issues.
+- Supported production operations to ensure application stability and availability.
+- Collaborated with development and support teams to troubleshoot and resolve technical issues.
+
+**Project 2: Mothercare**
+
+- Worked on Java-based application production support.
+- Monitored application issues and investigated production incidents.
+- Troubleshot Java application problems and supported issue resolution.
+- Collaborated with technical teams to maintain application stability and support business operations.
+
