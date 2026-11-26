@@ -1,6 +1,4 @@
 # Ramya_Manikandan_professional_portfolio
-personal_portfolio_both_previous_software_developer_and_current_data_Analyst
-# Ramya_Manikandan_professional_portfolio
 # Hi, I'm Ramya Manikandan 👋
 
 ## Software Developer | Data Analytics Enthusiast
