@@ -1,1 +1,76 @@
+Business case
+The sales director wants one overview with one row per nation. For each nation she wants total revenue, the nation's rank within its region, its share of the region's revenue and the share of registered customers that have never placed an order.
+Query
+-- import the tables we need, no joins or aggregations yet
+with customer as (
+    select *
+    from snowflake_sample_data.tpch_sf1.customer
+),
+
+orders as (
+    select *
+    from snowflake_sample_data.tpch_sf1.orders
+),
+
+nation as (
+    select *
+    from snowflake_sample_data.tpch_sf1.nation
+),
+
+region as (
+    select *
+    from snowflake_sample_data.tpch_sf1.region
+),
+
+-- step 1: number of orders and revenue per customer
+-- one row per customer
+customer_orders as (
+    select
+        c.c_custkey,
+        c.c_nationkey,
+        count(o.o_orderkey) as number_of_orders, -- 0 for customers without orders
+        coalesce(sum(o.o_totalprice), 0) as revenue -- null becomes 0
+    from customer c
+    left join orders o -- left join keeps customers without orders
+        on o.o_custkey = c.c_custkey
+    group by c.c_custkey, c.c_nationkey
+),
+
+-- step 2: customers and revenue per nation
+-- one row per nation
+nation_summary as (
+    select
+        r.r_name as region,
+        n.n_name as nation,
+        count(*) as customers,
+        sum(case when co.number_of_orders = 0 then 1 else 0 end) as customers_without_orders,
+        sum(co.revenue) as revenue
+    from customer_orders co
+    inner join nation n
+        on n.n_nationkey = co.c_nationkey
+    inner join region r
+        on r.r_regionkey = n.n_regionkey
+    group by r.r_name, n.n_name
+),
+
+-- step 3: rank and share within the region
+-- window functions keep one row per nation
+nation_ranking as (
+    select
+        region,
+        nation,
+        revenue,
+        rank() over (partition by region order by revenue desc) as revenue_rank_in_region,
+        -- nation revenue divided by total revenue of the region
+        round(100 * revenue / sum(revenue) over (partition by region), 1) as pct_of_region_revenue,
+        customers,
+        customers_without_orders,
+        round(100 * customers_without_orders / customers, 1) as pct_without_orders
+    from nation_summary
+)
+
+-- final result
+select *
+from nation_ranking
+order by region, revenue_rank_in_region;
 
